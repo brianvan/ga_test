@@ -5,7 +5,7 @@ get '/' do
   File.read('index.html')
 end
 
-get 'favorites' do
+get '/favorites' do
   response.header['Content-Type'] = 'application/json'
   File.read('data.json')
 end

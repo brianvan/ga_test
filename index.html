@@ -16,6 +16,92 @@ function app_clear_view(s){
   return true;
 }
 
+function app_favorite_click_handler(title, id, element){
+  
+  var xmlhttp=new XMLHttpRequest();
+  xmlhttp.onreadystatechange=function() {
+    if (xmlhttp.readyState==4) { 
+      if(xmlhttp.status==200 && xmlhttp.responseText !== "Invalid Request")
+      {
+        var span = document.getElementById("favorite-store-result");
+        span.innerHTML = "Added!";   
+      } else {
+        var span = document.getElementById("favorite-store-result");
+        span.innerHTML = "Error in adding favorite. Try again later";   
+      }
+    }
+  }
+ 
+  params = "name=" + title + "&oid=" + id;
+
+  xmlhttp.open("POST",'/favorites',true);
+  xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xmlhttp.send(params);
+  
+  span = document.createElement("span");
+  span.setAttribute("id", "favorite-store-result");
+  element.parentNode.replaceChild(span, element); 
+}
+
+function app_query_results_popout(element){
+  var e = document.getElementById("more-info");
+  app_clear_view(e);
+
+  var xmlhttp=new XMLHttpRequest();
+  xmlhttp.onreadystatechange=function() {
+    if (xmlhttp.readyState==4) { 
+      if(xmlhttp.status==200)
+      {
+        var div = document.createElement("div");
+        var data = JSON.parse(xmlhttp.responseText);
+        content = "<h2>Title: " + data.Title + "</h2>";
+        content = content + "<p>" + data.Plot + "</p>";
+        content = content + "<p>Actors: " + data.Actors + "</p>";
+        content = content + "<p>Released on: " + data.Released + "</p>";
+        content = content + "<p>Rated: " + data.Rated + "</p>";
+        content = content + "<p><a href='#' onclick='app_favorite_click_handler(\"" + data.Title + "\", \"" + data.imdbID + "\", this); return false;'>Add to Favorites</a></p>";
+        div.innerHTML = content;
+        e.appendChild(div);     
+      } else {
+        var h2 = document.createElement("h2");
+        h2.innerHTML = "No results found or error";
+        e.appendChild(h2);
+      }
+    }
+  }
+ 
+  var query = "http://www.omdbapi.com/?type=movie&i=" + encodeURIComponent(element.getAttribute('id'));
+
+  xmlhttp.open("GET",query,true);
+  xmlhttp.send();
+
+}
+
+function app_query_results_display(json){
+  var html = "<table border='1' style='float:left;width:500px;'>";
+  html = html + "<tr><td>Name</td></tr>";
+  var data = JSON.parse(json);
+  if (typeof(data.Search) !== 'undefined'){
+    data.Search.forEach(function(entry){
+       html = html + "<tr><td><a href='#' id='"+ entry.imdbID +"' onclick='app_query_results_popout(this);return false;'>" + entry.Title + "</a></td></tr>";
+    });
+  }
+  html = html + "</table><div id='more-info' style='float:right;width:400px;'></div><div style='clear:both;'></div>";
+  return html;
+
+}
+
+function app_favorites_display(json){
+  var html = "<table border='1'>";
+  html = html + "<tr><td>Name</td><td>ID</td></tr>";
+  var data = JSON.parse(json);
+  data.forEach(function(entry){
+    html = html + "<tr><td>" + entry.name + "</td><td>" + entry.oid + "</td></tr>";
+  });
+  html = html + "</table>";
+  return html;
+}
+
 function app_view_home(){
   var s = document.getElementById("appdisplay");
   app_clear_view(s);
@@ -41,22 +127,77 @@ function app_view_home(){
 function app_view_query(){
   var s = document.getElementById("appdisplay");
   app_clear_view(s);
-  // display query form with app_view_query_results() trigger
+  form = document.createElement("form");
+  form.setAttribute("id","app_query_form");
+  form.setAttribute("onsubmit","app_view_query_results(document.getElementById('app_query_form_name').value); return false;");
+  
+  //shortcut
+  form.innerHTML = "<label for='name'>Name: </label><input id='app_query_form_name' type='text' name='name' /><input type='submit' />";
+
+  s.appendChild(form);
 }
 
-function app_view_query_results(){
+function app_view_query_results(name){
   var s = document.getElementById("appdisplay");
   app_clear_view(s);
   
-  var t = document.createElement("table");
-  s.appendChild(t);
-  // look up OMDB
-  // display table + add favorite trigger
+  var xmlhttp=new XMLHttpRequest();
+  xmlhttp.onreadystatechange=function() {
+    if (xmlhttp.readyState==4) { 
+      if(xmlhttp.status==200)
+      {
+        var div = document.createElement("div");
+        div.innerHTML = app_query_results_display(xmlhttp.responseText);
+        s.appendChild(div);     
+      } else {
+        var h2 = document.createElement("h2");
+        h2.innerHTML = "No results found or error";
+        s.appendChild(h2);
+      }
+    var a = document.createElement("a");
+    a.setAttribute("href", "#");
+    a.setAttribute("id", "menu-home");
+    a.setAttribute("onclick", "app_view_home(); return false;");
+    a.innerHTML = "Back to home";
+    s.appendChild(a);
+    }
+  }
+ 
+  var query = "http://www.omdbapi.com/?type=movie&s=" + encodeURIComponent(name);
+
+  xmlhttp.open("GET",query,true);
+  xmlhttp.send();
+
 }
+
 function app_view_favorites(){
   var s = document.getElementById("appdisplay");
   app_clear_view(s);
-  // insert "view movie" link with app_view_query() trigger
+  var xmlhttp=new XMLHttpRequest();
+  xmlhttp.onreadystatechange=function() {
+    if (xmlhttp.readyState==4) { 
+      if(xmlhttp.status==200)
+      {
+        var div = document.createElement("div");
+        div.innerHTML = app_favorites_display(xmlhttp.responseText);
+        s.appendChild(div);     
+      } else {
+        var h2 = document.createElement("h2");
+        h2.innerHTML = "No results found or error";
+        s.appendChild(h2);
+      }
+    var a = document.createElement("a");
+    a.setAttribute("href", "#");
+    a.setAttribute("id", "menu-home");
+    a.setAttribute("onclick", "app_view_home(); return false;");
+    a.innerHTML = "Back to home";
+    s.appendChild(a);
+    }
+  }
+  
+  xmlhttp.open("GET","favorites",true);
+  xmlhttp.send();
+  
 }
 
 </script>
@@ -67,10 +208,5 @@ function app_view_favorites(){
 app_view_home();
 </script>
 
-<form action="/favorites" method="post">
-  <label for="name">Name: </label><input type="text" name="name" />
-  <label for="oid">ID: </label><input type="text" name="oid" />
-  <input type="submit" />
-</form>
 </body>
 </html>
