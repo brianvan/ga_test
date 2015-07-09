@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project page</title>
+</head>
+
+<body>
+<h1>Project page</h1>
+
+<script type="text/javascript">
+
+function app_clear_view(s){
+  while (s.hasChildNodes()) {
+    s.removeChild(s.lastChild);
+  }
+  return true;
+}
+
+function app_view_home(){
+  var s = document.getElementById("appdisplay");
+  app_clear_view(s);
+  
+  var a = document.createElement("a");
+  a.setAttribute("href", "#");
+  a.setAttribute("id", "menu-query");
+  a.setAttribute("onclick", "app_view_query(); return false;");
+  a.innerHTML = "Start a new query";
+  s.appendChild(a);
+  
+  var hr = document.createElement("hr");
+  s.appendChild(hr);
+  
+  var a = document.createElement("a");
+  a.setAttribute("href", "#");
+  a.setAttribute("id", "menu-favorites");
+  a.setAttribute("onclick", "app_view_favorites(); return false;");
+  a.innerHTML = "View Favorites";
+  s.appendChild(a); 
+}
+
+function app_view_query(){
+  var s = document.getElementById("appdisplay");
+  app_clear_view(s);
+  // display query form with app_view_query_results() trigger
+}
+
+function app_view_query_results(){
+  var s = document.getElementById("appdisplay");
+  app_clear_view(s);
+  
+  var t = document.createElement("table");
+  s.appendChild(t);
+  // look up OMDB
+  // display table + add favorite trigger
+}
+function app_view_favorites(){
+  var s = document.getElementById("appdisplay");
+  app_clear_view(s);
+  // insert "view movie" link with app_view_query() trigger
+}
+
+</script>
+
+<div id="appdisplay"></div>
+
+<script type="text/javascript">
+app_view_home();
+</script>
+
+<form action="/favorites" method="post">
+  <label for="name">Name: </label><input type="text" name="name" />
+  <label for="oid">ID: </label><input type="text" name="oid" />
+  <input type="submit" />
+</form>
+</body>
+</html>
