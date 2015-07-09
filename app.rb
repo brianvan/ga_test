@@ -2,12 +2,12 @@ require 'sinatra'
 require 'json'
 
 get '/' do
-  puts File.read('index.html')
+  File.read('index.html')
 end
 
 get 'favorites' do
   response.header['Content-Type'] = 'application/json'
-  puts File.read('data.json')
+  File.read('data.json')
 end
 
 get '/favorites' do
