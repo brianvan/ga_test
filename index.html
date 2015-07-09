@@ -9,6 +9,7 @@
 
 <script type="text/javascript">
 
+//Clear the viewport element iteratively. Takes viewport element as parameter
 function app_clear_view(s){
   while (s.hasChildNodes()) {
     s.removeChild(s.lastChild);
@@ -16,11 +17,15 @@ function app_clear_view(s){
   return true;
 }
 
+//If an "add favorite" link is clicked - AJAX to server + response. Params: title/id data & DOM element
 function app_favorite_click_handler(title, id, element){
-  
+
+  //For beginners: This is how you instantiate an XMLHttpRequest request. This example is for a POST command
   var xmlhttp=new XMLHttpRequest();
+  //Callback function. Reads states/status/response & makes DOM adjustments
   xmlhttp.onreadystatechange=function() {
     if (xmlhttp.readyState==4) { 
+      //Server has specific way of detailing invalid status. Ideally: return diff status code on server
       if(xmlhttp.status==200 && xmlhttp.responseText !== "Invalid Request")
       {
         var span = document.getElementById("favorite-store-result");
@@ -32,33 +37,41 @@ function app_favorite_click_handler(title, id, element){
     }
   }
  
+  //Set the post parameters, send the request
   params = "name=" + title + "&oid=" + id;
-
   xmlhttp.open("POST",'/favorites',true);
   xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   xmlhttp.send(params);
   
+  //extra: replace the link that was clicked with a "result" <span> element (it gets its content in the callback)
   span = document.createElement("span");
   span.setAttribute("id", "favorite-store-result");
   element.parentNode.replaceChild(span, element); 
 }
 
+//Populate the details popout for the Query results view
 function app_query_results_popout(element){
   var e = document.getElementById("more-info");
   app_clear_view(e);
 
+  //For beginners: another XMLHttpRequest request. This example is for a GET command
   var xmlhttp=new XMLHttpRequest();
   xmlhttp.onreadystatechange=function() {
     if (xmlhttp.readyState==4) { 
       if(xmlhttp.status==200)
       {
-        var div = document.createElement("div");
+        //If responseText has JSON data, this is what you do to make it available to the interpreter
         var data = JSON.parse(xmlhttp.responseText);
+
+        //This is a possible way of creating document content, but it's not ideal.
+        //The preferred way is to repeat the process of createElement, setAttribute, innerHTML, and appendChild for all tags.
+        var div = document.createElement("div");
         content = "<h2>Title: " + data.Title + "</h2>";
         content = content + "<p>" + data.Plot + "</p>";
         content = content + "<p>Actors: " + data.Actors + "</p>";
         content = content + "<p>Released on: " + data.Released + "</p>";
         content = content + "<p>Rated: " + data.Rated + "</p>";
+        //Note about below: to make an <A> tag a click trigger, set href to "#" and have the event end in "return false;"
         content = content + "<p><a href='#' onclick='app_favorite_click_handler(\"" + data.Title + "\", \"" + data.imdbID + "\", this); return false;'>Add to Favorites</a></p>";
         div.innerHTML = content;
         e.appendChild(div);     
@@ -70,13 +83,14 @@ function app_query_results_popout(element){
     }
   }
  
+  //build the OMDB query string for a single-film GET request
   var query = "http://www.omdbapi.com/?type=movie&i=" + encodeURIComponent(element.getAttribute('id'));
-
   xmlhttp.open("GET",query,true);
   xmlhttp.send();
 
 }
 
+//display a results table from an online search query. Parameter: JSON data. Titles with clickable links that build a popout on a click event.
 function app_query_results_display(json){
   var html = "<table border='1' style='float:left;width:500px;'>";
   html = html + "<tr><td>Name</td></tr>";
@@ -91,6 +105,7 @@ function app_query_results_display(json){
 
 }
 
+//display results from a favorites query to the local server. Parameter: JSON data.
 function app_favorites_display(json){
   var html = "<table border='1'>";
   html = html + "<tr><td>Name</td><td>ID</td></tr>";
@@ -102,6 +117,7 @@ function app_favorites_display(json){
   return html;
 }
 
+//Display the home screen. Sets up all DOM elements (with click triggers) programatically
 function app_view_home(){
   var s = document.getElementById("appdisplay");
   app_clear_view(s);
@@ -124,6 +140,7 @@ function app_view_home(){
   s.appendChild(a); 
 }
 
+//Display the form to submit a query. 
 function app_view_query(){
   var s = document.getElementById("appdisplay");
   app_clear_view(s);
@@ -137,6 +154,7 @@ function app_view_query(){
   s.appendChild(form);
 }
 
+//Display results view after a query is submitted. Runs the XMLHTTP request, sends data to a display function.
 function app_view_query_results(name){
   var s = document.getElementById("appdisplay");
   app_clear_view(s);
@@ -163,6 +181,7 @@ function app_view_query_results(name){
     }
   }
  
+  //build the OMDB query string for a "search" (by full or partial title) GET request
   var query = "http://www.omdbapi.com/?type=movie&s=" + encodeURIComponent(name);
 
   xmlhttp.open("GET",query,true);
@@ -170,6 +189,7 @@ function app_view_query_results(name){
 
 }
 
+//Display the view for the homepage favorites link. Runs the XMLHTTP request, sends data to a display function.
 function app_view_favorites(){
   var s = document.getElementById("appdisplay");
   app_clear_view(s);
@@ -202,9 +222,11 @@ function app_view_favorites(){
 
 </script>
 
+<!-- Viewport element - all the action happens inside this -->
 <div id="appdisplay"></div>
 
 <script type="text/javascript">
+//initialize by displaying home screen
 app_view_home();
 </script>
 
