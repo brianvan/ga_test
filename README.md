@@ -8,7 +8,11 @@
 
 > Persistent Favorites data.
 
-#### Deliverables
+### Original Challenge
+
+- https://github.com/generalassembly-wdi/instructor-code-challenge
+
+### Deliverables
 
 - This Git repository on github
 
